@@ -1,0 +1,160 @@
+/*! Licensed under MIT, https://github.com/sofish/shaft */
+
+/* basic reset */
+.shaft, .shaft-menu, .shaft-input, .shaft textarea{font:400 1.16em/1.45 Palatino, Optima, Georgia, serif;color:#331;}
+.shaft:focus{outline:none;}
+.shaft fieldset, img {border: 0;}
+.shaft blockquote{padding-left:10px;margin-left:-14px;border-left:4px solid #1abf89;}
+.shaft a{color:#1abf89;}
+.shaft del{text-decoration:line-through;}
+.shaft sub, .shaft sup {font-size:75%;position:relative;vertical-align:text-top\9;}
+:root .shaft sub, :root .shaft sup{vertical-align:baseline; /* for ie9 and other mordern browsers */}
+.shaft sup {top:-0.5em;}
+.shaft sub {bottom:-0.25em;}
+.shaft hr{border:none;border-bottom:1px solid #cfcfcf;margin-bottom:25px;*color:pink;*filter:chroma(color=pink);height:10px;*margin:-7px 0 15px;}
+.shaft small{font-size:0.8em;color:#888;}
+.shaft em, .shaft b, .shaft strong{font-weight:700;}
+.shaft pre{white-space:pre-wrap;padding:0.85em;background:#f8f8f8;}
+
+/* block-level element margin */
+.shaft p, .shaft pre, .shaft ul, .shaft ol, .shaft dl, .shaft form, .shaft table, .shaft blockquote{margin-bottom:16px;}
+
+/* headers */
+.shaft h1, .shaft h2, .shaft h3, .shaft h4, .shaft h5, .shaft h6{margin-bottom:16px;font-weight:700;line-height:1.2;}
+.shaft h1{font-size:2em;}
+.shaft h2{font-size:1.8em;}
+.shaft h3{font-size:1.6em;}
+.shaft h4{font-size:1.4em;}
+.shaft h5, .shaft h6{font-size:1.2em;}
+
+/* list */
+.shaft ul, .shaft ol{margin-left:1.2em;}
+.shaft ul, .shaft-ul{list-style:disc;}
+.shaft ol, .shaft-ol{list-style:decimal;}
+.shaft li ul, .shaft li ol, .shaft-ul ul, .shaft-ul ol, .shaft-ol ul, .shaft-ol ol{margin:0 2em 0 1.2em;}
+.shaft li ul, .shaft-ul ul, .shaft-ol ul{list-style: circle;}
+
+/* shaft menu */
+.shaft-menu, .shaft-input{font-size:14px;line-height:1;}
+.shaft-menu{white-space:nowrap;box-shadow:1px 2px 3px -2px #222;background:#333;background-image:linear-gradient(to bottom, #222, #333);opacity:0.9;position:fixed;height:36px;border:1px solid #333;border-radius:3px;display:none;z-index:1000;}
+.shaft-menu:after {top:100%;border:solid transparent;content:" ";height:0;width:0;position:absolute;pointer-events:none;}
+.shaft-menu:after {border-color:rgba(51, 51, 51, 0);border-top-color:#333;border-width:6px;left:50%;margin-left:-6px;}
+.shaft-icon{font:normal 900 16px/40px Georgia serif;min-width:20px;display:inline-block;padding:0 10px;height:36px;overflow:hidden;color:#fff;text-align:center;cursor:pointer;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none;}
+.shaft-icon:first-of-type{border-top-left-radius:3px;border-bottom-left-radius:3px;}
+.shaft-icon:last-of-type{border-top-right-radius:3px;border-bottom-right-radius:3px;}
+.shaft-icon:hover{background:#000;}
+.shaft-icon.active{color:#1abf89;background:#000;box-shadow:inset 2px 2px 4px #000;}
+.shaft-input{position:absolute;width:100%;left:0;top:0;height:36px;line-height:20px;background:#333;color:#fff;border:none;text-align:center;display:none;font-family:arial, sans-serif;}
+.shaft-input:focus{outline:none;}
+
+.shaft-textarea{display:block;background:#f8f8f8;padding:20px;}
+.shaft textarea{font-size:14px;border:none;background:none;width:100%;_height:200px;min-height:200px;resize:none;}
+
+@font-face {
+    font-family: 'shaft';
+    src: url('font/fontello.eot?370dad08');
+    src: url('font/fontello.eot?370dad08#iefix') format('embedded-oshafttype'),
+    url('font/fontello.woff?370dad08') format('woff'),
+    url('font/fontello.ttf?370dad08') format('truetype'),
+    url('font/fontello.svg?370dad08#fontello') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.shaft-menu [class^="icon-"]:before, .shaft-menu [class*=" icon-"]:before {
+  font-family: "shaft";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1em;
+  margin-left: .2em;
+}
+ 
+.shaft-menu .icon-location:before { content: '\e815'; } /* '' */
+.shaft-menu .icon-fit:before { content: '\e80f'; } /* '' */
+.shaft-menu .icon-bold:before { content: '\e805'; } /* '' */
+.shaft-menu .icon-italic:before { content: '\e806'; } /* '' */
+.shaft-menu .icon-justifyleft:before { content: '\e80a'; } /* '' */
+.shaft-menu .icon-justifycenter:before { content: '\e80b'; } /* '' */
+.shaft-menu .icon-justifyright:before { content: '\e80c'; } /* '' */
+.shaft-menu .icon-justifyfull:before { content: '\e80d'; } /* '' */
+.shaft-menu .icon-outdent:before { content: '\e800'; } /* '' */
+.shaft-menu .icon-indent:before { content: '\e801'; } /* '' */
+.shaft-menu .icon-mode:before { content: '\e813'; } /* '' */
+.shaft-menu .icon-fullscreen:before { content: '\e80e'; } /* '' */
+.shaft-menu .icon-insertunorderedlist:before { content: '\e802'; } /* '' */
+.shaft-menu .icon-insertorderedlist:before { content: '\e803'; } /* '' */
+.shaft-menu .icon-strikethrough:before { content: '\e807'; } /* '' */
+.shaft-menu .icon-underline:before { content: '\e804'; } /* '' */
+.shaft-menu .icon-blockquote:before { content: '\e814'; } /* '' */
+.shaft-menu .icon-undo:before { content: '\e817'; } /* '' */
+.shaft-menu .icon-pre:before { content: '\e816'; } /* '' */
+.shaft-menu .icon-unlink:before { content: '\e811'; } /* '' */
+.shaft-menu .icon-superscript:before { content: '\e808'; } /* '' */
+.shaft-menu .icon-subscript:before { content: '\e809'; } /* '' */
+.shaft-menu .icon-inserthorizontalrule:before { content: '\e818'; } /* '' */
+.shaft-menu .icon-pin:before { content: '\e812'; } /* '' */
+.shaft-menu .icon-createlink:before { content: '\e810'; } /* '' */
+
+.shaft {
+  position: relative;
+}
+.shaft.hinted h1:before,
+.shaft.hinted h2:before,
+.shaft.hinted h3:before,
+.shaft.hinted h4:before,
+.shaft.hinted h5:before,
+.shaft.hinted h6:before,
+.shaft.hinted blockquote:before,
+.shaft.hinted hr:before {
+  color: #eee;
+  position: absolute;
+  right: 100%;
+  white-space: nowrap;
+  padding-right: 10px;
+}
+.shaft.hinted blockquote {  border-left: 0; margin-left: 0; padding-left: 0; }
+.shaft.hinted blockquote:before {
+  color: #1abf89;
+  content: ">";
+  font-weight: bold;
+  vertical-align: center;
+}
+.shaft.hinted h1:before { content: "#";}
+.shaft.hinted h2:before { content: "##";}
+.shaft.hinted h3:before { content: "###";}
+.shaft.hinted h4:before { content: "####";}
+.shaft.hinted h5:before { content: "#####";}
+.shaft.hinted h6:before { content: "######";}
+.shaft.hinted hr:before { content: "﹘﹘﹘"; line-height: 1.2; vertical-align: bottom; }
+
+.shaft.hinted pre:before, .shaft.hinted pre:after {
+  content: "```";
+  display: block;
+  color: #ccc;
+}
+
+.shaft.hinted ul { list-style: none; }
+.shaft.hinted ul li:before {
+  content: "*";
+  color: #999;
+  line-height: 1;
+  vertical-align: bottom;
+  margin-left: -1.2em;
+  display: inline-block;
+  width: 1.2em;
+}
+
+.shaft.hinted b:before, .shaft.hinted b:after { content: "**"; color: #eee; font-weight: normal; }
+.shaft.hinted i:before, .shaft.hinted i:after { content: "*"; color: #eee; }
+
+.shaft.hinted a { text-decoration: none; }
+.shaft.hinted a:before {content: "["; color: #ddd; }
+.shaft.hinted a:after { content: "](" attr(href) ")"; color: #ddd; }

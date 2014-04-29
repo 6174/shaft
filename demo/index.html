@@ -1,0 +1,134 @@
+ <!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <title>Pen - What You See Is What You Get (WYSIWYG)</title>
+  <script src="../lib/jquery.js"></script>
+  <link rel="stylesheet" type="text/css" href="../shaft.css" />
+  <style type="text/css">
+  *{padding:0;margin:0;}
+  html{border-top:10px #1abf89 solid;}
+  body{width:800px;margin:0 auto;padding:5% 20px 20px;font-family:Palatino, Optima, Georgia, serif;}
+  @media all and (max-width:1024px){ body, pre a{width:60%;} }
+  small{color:#999;}
+  #toolbar{margin-bottom:1em;position:fixed;left:20px;margin-top:5px;}
+  #toolbar [class^="icon-"]:before, #toolbar [class*=" icon-"]:before{font-family:'pen'}
+  #mode{color:#1abf89;;cursor:pointer;}
+  #mode.disabled{color:#666;}
+  #mode:before{content: '\e813';}
+  #hinted{color:#1abf89;cursor:pointer;}
+  #hinted.disabled{color:#666;}
+  #hinted:before{content: '\e816';}
+
+  #fork{position:fixed;right:0;top:0;}
+  
+  /*
+  When the webpage is printed
+  this media query hides extra elements,
+  and makes the text content fit the page.
+  */
+  @media print {
+    #fork, #toolbar {
+        display: none;
+    }
+    body {
+        width: 94%;
+        padding-top: 1em;
+        font-size: 12px;
+    }
+    html {
+        border-top: 0;
+    }
+  }
+  </style>
+</head>
+<body>
+
+<div id="toolbar">
+  <span id="mode" class="icon-mode"></span>
+  <span id="hinted" class="icon-pre disabled" title="Toggle Markdown Hints"></span>
+</div>
+<style>
+  .list-item{
+    position: relative;
+    padding: 5px;
+    margin: 10px;
+    /*background: rgb(243, 243, 243);*/
+  }
+
+  .list-item:before{
+    content: '1.';
+    font-size: 34px;
+    font-weight: bold;
+    position: absolute;
+    top: -10px;
+    left: -50px;
+  }
+
+  .list-item .list-title{
+    border-bottom: dotted 1px #5A5A5A;
+    font-size: 20px;
+    font-weight: bold;
+    overflow: hidden;
+    padding: 6px 5px;
+    min-height: 48px;
+  }
+  
+  /* title p no margin*/
+  .list-item .list-title p{
+    margin: 0px;
+  }
+  
+  /*
+    * place holder   
+    * low z-index, opacity
+    * editable = false
+    * and at the top-left corner of the a block
+  */
+  .listitem-placeholder{
+    color: gray;
+    opacity: 0.5;
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+  }
+  
+  /*
+   * make empty p visible and editable
+   */
+  .list-item p{
+    z-index: 2;
+  }
+
+  .list-item *{
+    min-height: 1px;
+    outline: none;
+    resize: none;
+    zoom: 1;
+    box-sizing: border-box;
+  }
+      
+
+
+  .list-item .list-content{
+    padding: 10px;
+  }
+  
+
+
+</style>
+<div data-toggle="pen" placeholder="im a placeholder">
+  <h2>Enjoy live editing</h2>
+</div>
+<script src="../shaft.js"></script>
+<script type="text/javascript">
+  // config
+  var options = {
+    editor: $('[data-toggle="pen"]'),
+    debug: true
+  };
+  // create editor
+  var pen = new Shaft(options);
+</script>
+</body>
+</html>
