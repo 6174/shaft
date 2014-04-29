@@ -24,7 +24,10 @@
   #shaft-inline p{
     margin: 0px;
   }
-
+  #markdown-editor{
+    padding: 20px 0px;
+    margin-top: 50px;
+  }
 </style>
 <div data-toggle="pen" placeholder="im a placeholder">
   <h2>Shaft  editor demo</h2>
@@ -34,8 +37,13 @@
 
 <div id="shaft-inline" ></div>
 
+<div id="markdown-editor">
+  <h2>Markdown editor demo</h2>
+</div>
+
 <script src="../shaft.js"></script>
 <script src="../inlineEditor.js"></script>
+<script src="../markdownEditor.js"></script>
 <script type="text/javascript">
   // config
   var options = {
@@ -50,8 +58,12 @@
   // inline Shaft editor
   options.editor = $('#shaft-inline');
   options.placeholder = 'shaft inline editor  demo';
-
   var inline = new Shaft.Inline(options);
+
+
+  // markdown editor
+  options.editor = $('#markdown-editor')
+  var mrkdownEditor = new Shaft.Markdown(options);
 
 </script>
 </body>

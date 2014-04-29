@@ -20,7 +20,8 @@
             'enter': 13,
             'backspace': 8,
             'delete': 46,
-            'tab': 9
+            'tab': 9,
+            'space': 32
         }
     };
     /**
@@ -147,25 +148,16 @@
             me.interceptEvent = function(ev) {
                 return true;
             }
-            editor.on('keyup', function(ev) {
-                me.fire('keyup', ev);
-                //--remove default span style
-                if (!me.callIntercept('keyup', ev)) {
-                    ev.preventDefault();
-                }
+
+            'keyup,keydown,keypress,focus'.split(',').forEach(function(it){
+                editor.on(it, function(ev){
+                    me.fire(it, ev);
+                    if(!me.callIntercept(it, ev)){
+                        ev.preventDefault();
+                    }
+                })
             });
-            editor.on('keydown', function(ev) {
-                me.fire('keydown', ev);
-                if (!me.callIntercept('keydown', ev)) {
-                    ev.preventDefault();
-                }
-            });
-            editor.on('focus', function(ev) {
-                me.fire('focus', ev);
-                if (!me.callIntercept('focus', ev)) {
-                    ev.preventDefault();
-                }
-            });
+          
             //--fix chrome span default line-height bug
             editor.on("DOMNodeInserted", function(e) {
                 var target = e.target,
@@ -232,6 +224,7 @@
         execCommand: execCommand,
         mix: mix,
         is: is,
+        selection: selection,
         log: log,
         proxy: proxy,
         hereDoc: hereDoc,
