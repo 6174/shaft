@@ -19,14 +19,15 @@
         codeMap: {
             'enter': 13,
             'backspace': 8,
-            'delete': 46
+            'delete': 46,
+            'tab': 9
         }
     };
     /**
-     * @Klass Shaft
+     * @klass Shaft
      * @param: conf
      */
-    Shaft = Klass(null, {
+    Shaft = klass(null, {
         __construct: function(userConfig) {
             if (!userConfig) {
                 log('can\'t find config', true);
@@ -207,16 +208,7 @@
     Shaft.prototype.execCommand = function(name, val) {
         execCommand(name, val);
     }
-    Shaft.prototype.getSelectStartContainer = function() {
-        try {
-            var range = selection.getRangeAt(0);
-            var node = range.startContainer;
-        } catch (err) {
-            log('nothing selected');
-            return false;
-        }
-        return node;
-    }
+
     Shaft.prototype.getNodesFromCurrentToEditor = function(el, returnAsNodeName, returnAdClassName) {
         var nodes = [];
         //--editor is a $, el is a HTMLElement
@@ -232,15 +224,18 @@
         }
         return nodes;
     }
+
     //--static method
     mix(Shaft, {
-        Klass: Klass,
+        klass: klass,
         getEventHub: getEventHub,
         execCommand: execCommand,
         mix: mix,
         is: is,
         log: log,
         proxy: proxy,
+        hereDoc: hereDoc,
+        trim: trim,
         cleanStyle: function(node) {
             var els = node.querySelectorAll('[style]');
             [].slice.call(els).forEach(function(item) {
@@ -249,6 +244,16 @@
         },
         codeMap: function(name) {
             return G.codeMap[name];
+        },
+        getSelectStartContainer: function() {
+            try {
+                var range = selection.getRangeAt(0);
+                var node = range.startContainer;
+            } catch (err) {
+                log('nothing selected');
+                return false;
+            }
+            return node;
         },
         //--stackoverflow.com/questions/1181700/set-cursor-position-on-contenteditable-div
         pasteTextAtCaret: function(text) {
@@ -321,6 +326,14 @@
         }
     }
 
+    function hereDoc(f) {　
+        return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
+    }
+
+    function trim(str){
+        return str.replace(/^\s+|\s+$/g, '');   
+    }
+
     function nil() {}
 
     function log(message, force) {
@@ -389,7 +402,7 @@
         };
     };
 
-    function Klass(Parent, props) {
+    function klass(Parent, props) {
         var Child, F, i;
         Child = function() {
             var parent = Child.parent;

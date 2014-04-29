@@ -1,4 +1,8 @@
-/*! Licensed under MIT, https://github.com/sofish/shaft */
+/*! Licensed under MIT, https://github.com/sofish/pen*/
+
+/* placeholder */
+.shaft *{z-index: 2; min-height: 1px; outline: none; resize: none; zoom: 1; box-sizing: border-box; }
+.shaft .shaft-placeholder{z-index: 1; position: absolute; top: 0px; opacity: 0.5; pointer-events: none; }
 
 /* basic reset */
 .shaft, .shaft-menu, .shaft-input, .shaft textarea{font:400 1.16em/1.45 Palatino, Optima, Georgia, serif;color:#331;}
