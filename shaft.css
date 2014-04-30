@@ -4,6 +4,19 @@
 .shaft *{z-index: 2; min-height: 1px; outline: none; resize: none; zoom: 1; box-sizing: border-box; }
 .shaft .shaft-placeholder{z-index: 1; position: absolute; top: 0px; opacity: 0.5; pointer-events: none; }
 
+:empty {
+  display: block;
+  height: 1em;
+}
+
+[contenteditable=true]:empty:before{
+  content: attr(placeholder);
+}
+
+.shaft p:empty{
+  height: 24px;
+}
+
 /* basic reset */
 .shaft, .shaft-menu, .shaft-input, .shaft textarea{font:400 1.16em/1.45 Palatino, Optima, Georgia, serif;color:#331;}
 .shaft:focus{outline:none;}

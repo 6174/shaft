@@ -35,25 +35,25 @@
     }
 
     Inline.prototype.focus = function(){
-        Shaft.moveCursorToTheEndOfANode(this.editor[0]);
+        Shaft.moveCaretTo(this.editor[0]);
     }
 
     Inline.prototype.intercept = function(){
         var self = this;
         self.registIntercept('keydown', function(ev){
-            var node = Shaft.getSelectStartContainer();
+            var node = Shaft.getCaretNode();
             
             if(!node) return true;
 
             switch(ev.which){
-                case Shaft.codeMap('enter'):
+                case Shaft.keyMap('enter'):
                     console.log('enter pressed')
                     self.fire('press-enter', ev);
                     return false;
-                case Shaft.codeMap('tab'):
+                case Shaft.keyMap('tab'):
                     self.fire('press-tab', ev);
                     break;
-                case Shaft.codeMap('backspace'):
+                case Shaft.keyMap('backspace'):
                     self.fire('backspace', ev);
                     break;
             }
@@ -98,3 +98,9 @@
 
     Shaft.Inline = Inline;
 })($, Shaft);
+
+
+//--placehoder
+// [contenteditable=true]:empty:before{
+//   content: attr(placeholder);
+// }

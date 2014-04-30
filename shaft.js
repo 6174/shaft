@@ -16,14 +16,24 @@
     window.sel = selection;
     G = {
         debug: true,
-        codeMap: {
+        keyMap: {
             'enter': 13,
             'backspace': 8,
             'delete': 46,
             'tab': 9,
             'space': 32
+        },
+        reg: {
+            spaces: /^[ \t\f\r\n]+$/,
+            spacesMinusLineBreaksRegex: /^[ \t\f\r]+$/,
+            nonLineBreakWhiteSpaceRegex: /^[\t \u00A0\u1680\u180E\u2000-\u200B\u202F\u205F\u3000]+$/,
+            allWhiteSpaceRegex: /^[\t-\r \u0085\u00A0\u1680\u180E\u2000-\u200B\u2028\u2029\u202F\u205F\u3000]+$/,
+            lineBreakRegex: /^[\n-\r\u0085\u2028\u2029]$/
         }
     };
+    /**********************************************************************
+     * Shaft core
+     **********************************************************************/
     /**
      * @klass Shaft
      * @param: conf
@@ -37,6 +47,7 @@
             //-test
             window.editor = this;
             this.initialization(userConfig);
+            this.defaultIntercept();
         },
         defaultConfig: function() {
             return {
@@ -85,7 +96,7 @@
             var types = {
                 formatBlocks: 'h1,h2,h3,h4,h5,h6,blockquote,p,pre',
                 commands: 'bold,italiz,underline,indent,outdent',
-                insert_inline: 'inserthorizontalrule,insertimage,insertorderedlist,insertunorderedlist',
+                insert_inline: 'inserthorizontalrule,insertimage,insertorderedlist,insertunorderedlist,inserthtml',
                 source: 'createlink,unlink'
             };
             /**
@@ -148,16 +159,14 @@
             me.interceptEvent = function(ev) {
                 return true;
             }
-
-            'keyup,keydown,keypress,focus'.split(',').forEach(function(it){
-                editor.on(it, function(ev){
+            'keyup,keydown,keypress,focus'.split(',').forEach(function(it) {
+                editor.on(it, function(ev) {
                     me.fire(it, ev);
-                    if(!me.callIntercept(it, ev)){
+                    if (!me.callIntercept(it, ev)) {
                         ev.preventDefault();
                     }
                 })
             });
-          
             //--fix chrome span default line-height bug
             editor.on("DOMNodeInserted", function(e) {
                 var target = e.target,
@@ -169,25 +178,79 @@
                     helper.after(target.contents());
                     helper.remove();
                     target.remove();
+                    return;
+                }
+                //--turn div block to p
+                if (target.tagName === 'DIV') {
+                    // execCommand('formatblock', 'p')
+                    return;
                 }
             });
         }
     };
+    /**
+     * default intercept behaviors
+     * 1. space key intercept: enter word , no more than two spaces
+     * 2. enter key intercept:
+     *      + resonpse according to attribute
+     *      + h*, blockquote, p, div end  pressed enter key , create p tag
+     *      + h*, blockquote center pressed enter key create new (h*,blk)
+     * 3. block can't contain blocks
+     */
+    Shaft.prototype.defaultIntercept = function() {
+        this.on('keydown', function(ev) {
+            var which = ev.which;
+            switch (which) {
+                case Shaft.keyMap('space'):
+                    spaceKeyIntercept(ev);
+                    break;
+            }
+        });
+
+        function spaceKeyIntercept(ev) {
+            selection.isCollapsed ? collapsed():notCollapsed();
+            return;
+            function collapsed() {
+                var node = Shaft.getCaretTextNode(),
+                    offset = Shaft.getCaretOffset(),
+                    text = $(node).text(),
+                    caretPrevChar = text.slice(offset - 1, offset),
+                    caretNextChar = text.slice(offset, offset + 1);
+                console.log("OffsetText: ", '--' + text + '-prev-' + caretPrevChar + '-next-' + caretNextChar + '--');
+                //--move caret to the space
+                if (caretNextChar !== '' && G.reg.allWhiteSpaceRegex.test(caretNextChar)) {
+                    ev.preventDefault();
+                    // http://stackoverflow.com/questions/11247737/how-can-i-get-the-word-that-the-caret-is-upon-inside-a-contenteditable-div
+                    console.log('move forward');
+                    selection.modify("move", "forward", "character");
+                }
+
+                if (G.reg.allWhiteSpaceRegex.test(caretPrevChar)) {
+                    console.log('prevent space')
+                    ev.preventDefault();
+                }
+            }
+
+            function notCollapsed(){
+                // selection.modify("move", "backward", "character");
+            }
+        }
+    };
     Shaft.prototype.registAction = function(name, fn) {
         this.on('action-' + name, proxy(fn, this));
-    }
+    };
     Shaft.prototype.unRegistAction = function(name) {
         this.detach('action-' + name);
-    }
+    };
     Shaft.prototype.registIntercept = function(type, fn) {
         this._intercepts = this._intercepts || {};
         this._intercepts[type] = this._intercepts[type] || [];
         this._intercepts[type].push(fn);
-    }
+    };
     Shaft.prototype.unRegistIntercept = function(type) {
         this._intercepts = this._intercepts || {};
         this._intercepts[type] = [];
-    }
+    };
     Shaft.prototype.callIntercept = function(type, ev) {
         this._intercepts = this._intercepts || {};
         if (!this._intercepts[type]) {
@@ -196,11 +259,10 @@
         return this._intercepts[type].every(function(fn) {
             return fn.apply(null, [ev]);
         });
-    }
+    };
     Shaft.prototype.execCommand = function(name, val) {
         execCommand(name, val);
-    }
-
+    };
     Shaft.prototype.getNodesFromCurrentToEditor = function(el, returnAsNodeName, returnAdClassName) {
         var nodes = [];
         //--editor is a $, el is a HTMLElement
@@ -216,7 +278,6 @@
         }
         return nodes;
     }
-
     //--static method
     mix(Shaft, {
         klass: klass,
@@ -235,78 +296,124 @@
                 item.removeAttribute('style');
             });
         },
-        codeMap: function(name) {
-            return G.codeMap[name];
-        },
-        getSelectStartContainer: function() {
-            try {
-                var range = selection.getRangeAt(0);
-                var node = range.startContainer;
-            } catch (err) {
-                log('nothing selected');
-                return false;
-            }
-            return node;
-        },
-        //--stackoverflow.com/questions/1181700/set-cursor-position-on-contenteditable-div
-        pasteTextAtCaret: function(text) {
-            var sel, range;
-            if (window.getSelection) {
-                // IE9 and non-IE
-                sel = window.getSelection();
-                if (sel.getRangeAt && sel.rangeCount) {
-                    range = sel.getRangeAt(0);
-                    range.deleteContents();
-                    var textNode = document.createTextNode(text);
-                    range.insertNode(textNode);
-                    // Preserve the selection
-                    range = range.cloneRange();
-                    range.setStartAfter(textNode);
-                    range.collapse(true);
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }
-            } else if (document.selection && document.selection.type != "Control") {
-                // IE < 9
-                document.selection.createRange().text = text;
-            }
-        },
-        //--http://stackoverflow.com/questions/4767848/get-caret-cursor-position-in-contenteditable-area-containing-html-content
-        getCharacterOffsetWithin: function(range, node) {
-            var treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, function(node) {
-                var nodeRange = document.createRange();
-                nodeRange.selectNode(node);
-                return nodeRange.compareBoundaryPoints(Range.END_TO_END, range) < 1 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-            }, false);
-            var charCount = 0;
-            while (treeWalker.nextNode()) {
-                charCount += treeWalker.currentNode.length;
-            }
-            if (range.startContainer.nodeType == 3) {
-                charCount += range.startOffset;
-            }
-            return charCount;
-        },
-        //http://stackoverflow.com/questions/1125292/how-to-move-cursor-to-end-of-contenteditable-entity
-        moveCursorToTheEndOfANode: function(node) {
-            var range, selection;
-            if (document.createRange) //Firefox, Chrome, Opera, Safari, IE 9+
-            {
-                range = document.createRange(); //Create a range (a range is a like the selection but invisible)
-                range.selectNodeContents(node); //Select the entire contents of the element with the range
-                range.collapse(false); //collapse the range to the end point. false means collapse to end rather than the start
-                selection = window.getSelection(); //get the selection object (allows you to change selection)
-                selection.removeAllRanges(); //remove any selections already made
-                selection.addRange(range); //make the range you have just created the visible selection
-            } else if (document.selection) //IE 8 and lower
-            {
-                range = document.body.createTextRange(); //Create a range (a range is a like the selection but invisible)
-                range.moveToElementText(node); //Select the entire contents of the element with the range
-                range.collapse(false); //collapse the range to the end point. false means collapse to end rather than the start
-                range.select(); //Select the range (make it the visible selection
-            }
+        keyMap: function(name) {
+            return G.keyMap[name];
         }
     });
+    /**********************************************************************
+     * Shaft rangy and selection method
+     **********************************************************************/
+    /**
+     * rangy api for Shaft
+     * not compatible to ie <= 8
+     */
+    Shaft.getSelectStartNode = function() {
+        var node = selection.anchorNode;
+        return (node && node.nodeType === 3 ? node.parentNode : node);
+    }
+    Shaft.getCaretTextNode = function() {
+        return selection.anchorNode;
+    }
+    Shaft.getCaretOffset = function() {
+        return selection.anchorOffset;
+    }
+    Shaft.getCaretNode = Shaft.getSelectStartNode;
+    /**
+     * move the caret to a node
+     */
+    Shaft.moveCaretTo = function(node) {
+        var range = document.createRange();
+        range.selectionNodeContents(node);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+    //--stackoverflow.com/questions/1181700/set-cursor-position-on-contenteditable-div
+    Shaft.insertHtmlAtCaret = function(html) {
+        var sel = selection,
+            range;
+        if (sel.getRangeAt && sel.rangeCount) {
+            range = sel.getRangeAt(0);
+            range.deleteContents();
+            var node = $(html)[0];
+            range.insertNode(node);
+            // Preserve the selection
+            range = range.cloneRange();
+            range.setStartAfter(node);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    }
+    //--http://stackoverflow.com/questions/4767848/get-caret-cursor-position-in-contenteditable-area-containing-html-content
+    Shaft.getCharacterOffsetWithin = function(range, node) {
+        var treeWalker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, function(node) {
+            var nodeRange = document.createRange();
+            nodeRange.selectNode(node);
+            return nodeRange.compareBoundaryPoints(Range.END_TO_END, range) < 1 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }, false);
+        var charCount = 0;
+        while (treeWalker.nextNode()) {
+            charCount += treeWalker.currentNode.length;
+        }
+        if (range.startContainer.nodeType == 3) {
+            charCount += range.startOffset;
+        }
+        return charCount;
+    }
+    //http://stackoverflow.com/questions/5605401/insert-link-in-contenteditable-element
+    Shaft.saveSelection = function() {
+        if (window.getSelection) {
+            sel = window.getSelection();
+            if (sel.getRangeAt && sel.rangeCount) {
+                var ranges = [];
+                for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+                    ranges.push(sel.getRangeAt(i));
+                }
+                return ranges;
+            }
+        } else if (document.selection && document.selection.createRange) {
+            return document.selection.createRange();
+        }
+        return null;
+    }
+    Shaft.restoreSelection = function(savedSel) {
+        if (savedSel) {
+            if (window.getSelection) {
+                sel = window.getSelection();
+                sel.removeAllRanges();
+                for (var i = 0, len = savedSel.length; i < len; ++i) {
+                    sel.addRange(savedSel[i]);
+                }
+            } else if (document.selection && savedSel.select) {
+                savedSel.select();
+            }
+        }
+    }
+    // http://stackoverflow.com/questions/4176923/html-of-selected-text
+    // by Tim Down
+    Shaft.getSelectionHtml = function() {
+        var i,
+            html = '',
+            sel,
+            len,
+            container;
+        if (window.getSelection !== undefined) {
+            sel = window.getSelection();
+            if (sel.rangeCount) {
+                container = document.createElement('div');
+                for (i = 0, len = sel.rangeCount; i < len; i += 1) {
+                    container.appendChild(sel.getRangeAt(i).cloneContents());
+                }
+                html = container.innerHTML;
+            }
+        } else if (document.selection !== undefined) {
+            if (document.selection.type === 'Text') {
+                html = document.selection.createRange().htmlText;
+            }
+        }
+        return html;
+    }
     /**********************************************************************
      *+ common util
      **********************************************************************/
@@ -319,12 +426,16 @@
         }
     }
 
+    function isElement(obj) {
+        return !!(obj && obj.nodeType === 1);
+    }
+
     function hereDoc(f) {　
         return f.toString().replace(/^[^\/]+\/\*!?\s?/, '').replace(/\*\/[^\/]+$/, '');
     }
 
-    function trim(str){
-        return str.replace(/^\s+|\s+$/g, '');   
+    function trim(str) {
+        return str.replace(/^\s+|\s+$/g, '');
     }
 
     function nil() {}

@@ -27,22 +27,11 @@
 				console.log('aha key press', command)
 	        });
         },
-        goMarkdown: function(command){
-        	console.log('go markdown')
-        	if(Shaft.selection.focusOffset > command[1]) {
-        		Shaft.log('focus Offset ' +  Shaft.selection.focusOffset + '> ' + command[0] + '  ' + command[1])
-        		return;
-        	}
-
-        	var node = Shaft.selection.focusNode;
-        	node.textContent = node.textContent.slice(command[1]);
-        	this.action(command[0]);
-        },
         acceptKeyEvent: function(ev){
         	var code = ev.which;
         	var command = [];
         	var commandStr;
-        	if(code == Shaft.codeMap('space')){
+        	if(code == Shaft.keyMap('space')){
         		commandStr = this._inputKeyStack.join('');
         		this._inputKeyStack.length = 0;
         		console.log(commandStr);
@@ -54,6 +43,17 @@
         		this._inputKeyStack.push(G['keymap'][code]);
         	}
         	return false;
+        },
+        goMarkdown: function(command){
+        	console.log('go markdown')
+        	if(Shaft.selection.focusOffset > command[1]) {
+        		Shaft.log('focus Offset ' +  Shaft.selection.focusOffset + '> ' + command[0] + '  ' + command[1])
+        		return;
+        	}
+
+        	var node = Shaft.selection.focusNode;
+        	node.textContent = node.textContent.slice(command[1]);
+        	this.action(command[0]);
         }
     });
 
