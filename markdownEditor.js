@@ -24,7 +24,6 @@
 	        self.on('keypress', function(ev){
 	        	var command = self.acceptKeyEvent(ev);
 				command && self.goMarkdown(command);
-				console.log('aha key press', command)
 	        });
         },
         acceptKeyEvent: function(ev){
@@ -34,7 +33,6 @@
         	if(code == Shaft.keyMap('space')){
         		commandStr = this._inputKeyStack.join('');
         		this._inputKeyStack.length = 0;
-        		console.log(commandStr);
         		command = parseMarkdownExpression(commandStr);
         		return command;
         	}
@@ -45,7 +43,6 @@
         	return false;
         },
         goMarkdown: function(command){
-        	console.log('go markdown')
         	if(Shaft.selection.focusOffset > command[1]) {
         		Shaft.log('focus Offset ' +  Shaft.selection.focusOffset + '> ' + command[0] + '  ' + command[1])
         		return;
@@ -66,9 +63,9 @@
         } else if (str === '>') {
             return ['blockquote', len];
         } else if (str === '1.') {
-            return ['insertorderedlist', len];
+            return ['ol', len];
         } else if (str === '-' || str === '*') {
-            return ['insertunorderedlist', len];
+            return ['ul', len];
         } else if (str.match(/(?:\.|\*|\-){3,}/)) {
             return ['inserthorizontalrule', len];
         }

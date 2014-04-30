@@ -96,7 +96,7 @@
             var types = {
                 formatBlocks: 'h1,h2,h3,h4,h5,h6,blockquote,p,pre',
                 commands: 'bold,italiz,underline,indent,outdent',
-                insert_inline: 'inserthorizontalrule,insertimage,insertorderedlist,insertunorderedlist,inserthtml',
+                insert_inline: 'inserthorizontalrule,insertimage',
                 source: 'createlink,unlink'
             };
             /**
@@ -125,6 +125,28 @@
                     me.execCommand('formatblock', action)
                 });
             });
+
+            'ol,ul'.split(',').forEach(function(name){
+                me.registAction(name, function(ev) {
+                    var action = ev.type.replace('action-', ''),
+                        block = Shaft.getCaretNode(),
+                        tagName = block.tagName.toLowerCase();
+                    console.log(action);
+                    //--there is a ol or ul
+                    if(me.getNodesFromCurrentToEditor(selection.getRangeAt(0).startContainer, true).indexOf(action) !== -1){
+                        return '';
+                    }
+
+                    var parent = document.createElement(action),
+                        li = document.createElement('li');
+                    li.textContent = block.textContent;
+                    parent.appendChild(li);
+                    $(block).after(parent);
+                    $(block).remove();
+                    Shaft.moveCaretTo(li);
+                });
+            }); 
+
             /**
              * append a node at the end of the editor
              */
@@ -132,6 +154,7 @@
                 var child = ev.val;
                 me.editor.append(child);
             });
+
             /**
              * action api for custom  command and default command
              */
@@ -210,9 +233,11 @@
             }
         });
         return;
+
         function spaceKeyIntercept(ev) {
-            selection.isCollapsed ? collapsed():notCollapsed();
+            selection.isCollapsed ? collapsed() : notCollapsed();
             return;
+
             function collapsed() {
                 var node = Shaft.getCaretTextNode(),
                     offset = Shaft.getCaretOffset(),
@@ -227,60 +252,77 @@
                     selection.modify("move", "forward", "character");
                     return;
                 }
-
                 if (G.reg.allWhiteSpaceRegex.test(caretPrevChar)) {
                     ev.preventDefault();
                 }
             }
             //--  user select a range, and press space key
             //--  a space will be entered
-            function notCollapsed(){
+            function notCollapsed() {
                 // selection.modify("move", "backward", "character");
                 ev.preventDefault();
                 //--delete select
                 Shaft.insertHtmlAtCaret('', true);
             }
-            
         }
 
         function enterKeyIntercept(ev) {
             //-- caret at the block end
             var node = Shaft.getCaretTextNode(),
                 block = Shaft.getCaretNode();
-
-            if(block.getAttribute('data-disable-return')){
+            if (block.getAttribute('data-disable-return')) {
                 ev.preventDefault();
                 return;
-            } 
-
+            }
             var text = node.textContent,
                 offset = Shaft.getCaretOffset(),
                 str = text.slice(offset, text.length);
+            var blockName = block.tagName.toLowerCase();
             //--it is text node
-            if (node !== block){
+            if (node !== block) {
                 //--node is current textnode or block,
                 //--find nextsibling until null
-
-                while(node){
+                while (node) {
                     node = node.nextSibling
-                    if(node){
+                    if (node) {
                         str += node.textContent
                     }
                 }
 
                 console.log('text-at-caret-right:', '--' + str + '--');
-                if(str == '' ||  G.reg.allWhiteSpaceRegex.test(str)){
-                    console.log('it is white space')
-                    ev.preventDefault();
-                    Shaft.newLine();
-                }else{
-                    console.log('oh no It is not white space?')
+                if (str == '' || G.reg.allWhiteSpaceRegex.test(str)) {
+                    if (blockName != 'li') {
+                        ev.preventDefault();
+                        Shaft.newLine();
+                    } else if(G.reg.allWhiteSpaceRegex.test(block.textContent)){
+                        ev.preventDefault();
+                        liNewLine();
+                    } 
                 }
-            } else{ // it is a block node
-                var blockName = block.tagName.toLowerCase();
+            } else { // it is a block node
                 ev.preventDefault();
-                Shaft.newLine();
-                // Shaft.insertHtmlAtCaret('<' + blockName + '>' + '<br>' + '</' + blockName + '>');
+                if (blockName == 'li') {
+                    liNewLine();
+                } else {
+                    Shaft.newLine();
+                }
+            }
+
+            function liNewLine() {
+                var parentNode = block.parentNode;
+                console.log('li new line');
+                //--delete current li
+                parentNode.removeChild(block);
+                //-- cant use newLine any more  li, ol are both block
+                //-- new line after ol or li
+                var lineEl = $('<p><br></p>')[0];
+                $(parentNode).after(lineEl);
+                Shaft.moveCaretTo(lineEl);
+                //--delete empty ol or ul
+                if (parentNode.children.length == 0) {
+                    console.log('remove parent');
+                    $(parentNode).remove();
+                }
             }
         }
     };
@@ -376,23 +418,21 @@
         selection.removeAllRanges();
         selection.addRange(range);
     }
-
-    Shaft.newLine = function(){
+    Shaft.newLine = function() {
         var lineEl = $('<p><br><p>')[0],
             node = this.getCaretNode();
         $(node).after(lineEl);
         this.moveCaretTo(lineEl);
     }
-
     Shaft.insertHtmlAtCaret = function(html, isPlainText) {
         var sel = selection,
             range, node;
         if (sel.getRangeAt && sel.rangeCount) {
             range = sel.getRangeAt(0);
             range.deleteContents();
-            if(isPlainText){
+            if (isPlainText) {
                 node = document.createTextNode(html || '');
-            } else{
+            } else {
                 node = $(html)[0];
             }
             range.insertNode(node);
