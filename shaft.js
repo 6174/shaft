@@ -204,16 +204,19 @@
                 case Shaft.keyMap('space'):
                     spaceKeyIntercept(ev);
                     break;
+                case Shaft.keyMap('enter'):
+                    enterKeyIntercept(ev);
+                    break;
             }
         });
-
+        return;
         function spaceKeyIntercept(ev) {
             selection.isCollapsed ? collapsed():notCollapsed();
             return;
             function collapsed() {
                 var node = Shaft.getCaretTextNode(),
                     offset = Shaft.getCaretOffset(),
-                    text = $(node).text(),
+                    text = node.textContent,
                     caretPrevChar = text.slice(offset - 1, offset),
                     caretNextChar = text.slice(offset, offset + 1);
                 // console.log("OffsetText: ", '--' + text + '-prev-' + caretPrevChar + '-next-' + caretNextChar + '--');
@@ -236,6 +239,48 @@
                 ev.preventDefault();
                 //--delete select
                 Shaft.insertHtmlAtCaret('', true);
+            }
+            
+        }
+
+        function enterKeyIntercept(ev) {
+            //-- caret at the block end
+            var node = Shaft.getCaretTextNode(),
+                block = Shaft.getCaretNode();
+
+            if(block.getAttribute('data-disable-return')){
+                ev.preventDefault();
+                return;
+            } 
+
+            var text = node.textContent,
+                offset = Shaft.getCaretOffset(),
+                str = text.slice(offset, text.length);
+            //--it is text node
+            if (node !== block){
+                //--node is current textnode or block,
+                //--find nextsibling until null
+
+                while(node){
+                    node = node.nextSibling
+                    if(node){
+                        str += node.textContent
+                    }
+                }
+
+                console.log('text-at-caret-right:', '--' + str + '--');
+                if(str == '' ||  G.reg.allWhiteSpaceRegex.test(str)){
+                    console.log('it is white space')
+                    ev.preventDefault();
+                    Shaft.newLine();
+                }else{
+                    console.log('oh no It is not white space?')
+                }
+            } else{ // it is a block node
+                var blockName = block.tagName.toLowerCase();
+                ev.preventDefault();
+                Shaft.newLine();
+                // Shaft.insertHtmlAtCaret('<' + blockName + '>' + '<br>' + '</' + blockName + '>');
             }
         }
     };
@@ -326,10 +371,17 @@
      */
     Shaft.moveCaretTo = function(node) {
         var range = document.createRange();
-        range.selectionNodeContents(node);
+        range.selectNodeContents(node);
         range.collapse(false);
         selection.removeAllRanges();
         selection.addRange(range);
+    }
+
+    Shaft.newLine = function(){
+        var lineEl = $('<p><br><p>')[0],
+            node = this.getCaretNode();
+        $(node).after(lineEl);
+        this.moveCaretTo(lineEl);
     }
 
     Shaft.insertHtmlAtCaret = function(html, isPlainText) {
