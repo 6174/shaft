@@ -147,6 +147,7 @@
                 });
             }); 
 
+
             /**
              * append a node at the end of the editor
              */
