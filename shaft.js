@@ -216,23 +216,26 @@
                     text = $(node).text(),
                     caretPrevChar = text.slice(offset - 1, offset),
                     caretNextChar = text.slice(offset, offset + 1);
-                console.log("OffsetText: ", '--' + text + '-prev-' + caretPrevChar + '-next-' + caretNextChar + '--');
+                // console.log("OffsetText: ", '--' + text + '-prev-' + caretPrevChar + '-next-' + caretNextChar + '--');
                 //--move caret to the space
                 if (caretNextChar !== '' && G.reg.allWhiteSpaceRegex.test(caretNextChar)) {
                     ev.preventDefault();
                     // http://stackoverflow.com/questions/11247737/how-can-i-get-the-word-that-the-caret-is-upon-inside-a-contenteditable-div
-                    console.log('move forward');
                     selection.modify("move", "forward", "character");
+                    return;
                 }
 
                 if (G.reg.allWhiteSpaceRegex.test(caretPrevChar)) {
-                    console.log('prevent space')
                     ev.preventDefault();
                 }
             }
-
+            //--  user select a range, and press space key
+            //--  a space will be entered
             function notCollapsed(){
                 // selection.modify("move", "backward", "character");
+                ev.preventDefault();
+                //--delete select
+                Shaft.insertHtmlAtCaret('', true);
             }
         }
     };
@@ -328,14 +331,18 @@
         selection.removeAllRanges();
         selection.addRange(range);
     }
-    //--stackoverflow.com/questions/1181700/set-cursor-position-on-contenteditable-div
-    Shaft.insertHtmlAtCaret = function(html) {
+
+    Shaft.insertHtmlAtCaret = function(html, isPlainText) {
         var sel = selection,
-            range;
+            range, node;
         if (sel.getRangeAt && sel.rangeCount) {
             range = sel.getRangeAt(0);
             range.deleteContents();
-            var node = $(html)[0];
+            if(isPlainText){
+                node = document.createTextNode(html || '');
+            } else{
+                node = $(html)[0];
+            }
             range.insertNode(node);
             // Preserve the selection
             range = range.cloneRange();
