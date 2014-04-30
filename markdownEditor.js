@@ -48,6 +48,13 @@
         		return;
         	}
 
+            if(command[0] == 'inserthorizontalrule'){
+                var node = Shaft.getCaretNode();
+                $(node).before('<hr>');
+                node.textContent = node.textContent.slice(command[1]);
+                return;
+            }
+
         	this.action(command[0]);
             var node = Shaft.getCaretNode();
             node.textContent = node.textContent.slice(command[1]);

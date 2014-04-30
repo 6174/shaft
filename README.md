@@ -12,3 +12,5 @@ you can make kind of editor by shaft like:
 * markdown editor
 * custom everything 
 
+### see demo at demo/index.html
+
