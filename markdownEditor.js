@@ -55,7 +55,7 @@
                 return;
             }
 
-        	this.action(command[0]);
+        	this.execCommand(command[0]);
             var node = Shaft.getCaretNode();
             node.textContent = node.textContent.slice(command[1]);
         }

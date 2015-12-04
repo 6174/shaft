@@ -3,12 +3,17 @@
  * @author: 6174
  * -- a fork from pen.js
  * -- provide a custom editor backbone
- * -- top - down reDesign
- * ---
- *   editor.action('action', value)
- *   editor.interceptEvent(ev){ return true;}
- *   editor.interceptAction('action', value){}
- *   editor.on('keyup|keydown|focus', function(){});
+ *
+ *   action: 
+ *      an action is an `execCommand` command , beside the default command , shaft provide 
+ *      some custom command  
+ *
+ *   apis:
+ *    
+ *        editor.execCommand('action', value)
+ *        editor.interceptAction('action', value){}
+ *        editor.on('keyup|keydown|focus', function(){});
+ *        
  */
 (function($, exports) {
     var doc = document;
@@ -44,7 +49,7 @@
                 log('can\'t find config', true);
                 return;
             }
-            //-test
+            // export a global variable for test
             window.editor = this;
             this.initialization(userConfig);
             this.defaultIntercept();
@@ -54,60 +59,72 @@
                 editorClass: 'shaft',
                 debug: true,
                 editor: null,
-                //-- handler called before close window
+                // handler called before close window
                 onCloseWindow: nil
             }
         }
     });
+    /**
+     * [initialization]
+     * @param  {[type]} userConfig [description]
+     * @return {[type]}            [description]
+     */
     Shaft.prototype.initialization = function(userConfig) {
         var config = this.config = this.defaultConfig(),
             me = this;
         mix(config, userConfig);
-        //--event enable
+        // event enable
         mix(me, getEventHub());
         initEditorElement();
         initActions();
         initEvents();
         return;
+
         /**
          * editor element initialization
          */
         function initEditorElement() {
-            //-- config is a HTMLElement
+
             if (config.editor) {
                 config.editor = $(config.editor);
             } else {
+                // userconfig is a HTMLElement
                 config.editor = $(userConfig);
             }
+
             if (!config.editor) {
                 throw new Error('cant\'t find editor');
                 return;
             }
+
             config.editor.addClass(config.editorClass);
             config.editor.attr('contenteditable', 'true');
             me.editor = config.editor;
         }
+
         /**
          * actions initialization
          */
         function initActions() {
             var commands = config.commands;
-            //--default command types;
+            // default command types;
             var types = {
                 formatBlocks: 'h1,h2,h3,h4,h5,h6,blockquote,p,pre',
                 commands: 'bold,italiz,underline,indent,outdent',
                 insert_inline: 'inserthorizontalrule,insertimage',
                 source: 'createlink,unlink'
             };
+
             /**
              * just execCommand
              */
             (types.insert_inline + ',' + types.source + ',' + types.commands).split(',').forEach(function(name) {
-                me.on('action-' + name, function(ev) {
+                me.registAction(name, function(ev) {
                     var action = ev.type.replace('action-', '');
-                    me.execCommand(action, ev.val);
+                    me._execCommand(action, ev.val);
                 });
             });
+
             /**
              * formatblocks
              * need to toggle blockquote
@@ -118,11 +135,11 @@
                     //--toggle format
                     if (me.getNodesFromCurrentToEditor(selection.getRangeAt(0).startContainer, true).indexOf(action) !== -1) {
                         if (action === 'blockquote') {
-                            return me.execCommand('outdent')
+                            return me._execCommand('outdent')
                         }
                         action = 'p';
                     }
-                    me.execCommand('formatblock', action)
+                    me._execCommand('formatblock', action)
                 });
             });
 
@@ -131,8 +148,8 @@
                     var action = ev.type.replace('action-', ''),
                         block = Shaft.getCaretNode(),
                         tagName = block.tagName.toLowerCase();
-                    console.log(action);
-                    //--there is a ol or ul
+
+                    // there is a ol or ul
                     if(me.getNodesFromCurrentToEditor(selection.getRangeAt(0).startContainer, true).indexOf(action) !== -1){
                         return '';
                     }
@@ -157,13 +174,14 @@
             });
 
             /**
-             * action api for custom  command and default command
+             * action api for custom command and default command
              */
             me.interceptAction = function() {
                 return true;
             }
-            me.action = function(name, value) {
-                //--action channel  intercept
+
+            me.execCommand = me.action = function(name, value) {
+                // action channel  intercept
                 if (!me.callIntercept('action', value)) {
                     return;
                 }
@@ -179,19 +197,20 @@
          * events initialization
          */
         function initEvents() {
-            var editor = config.editor;
+            var $editor = config.editor;
             me.interceptEvent = function(ev) {
                 return true;
             }
+            // pass dom keyboard event to shaft editor 
             'keyup,keydown,keypress,focus'.split(',').forEach(function(it) {
-                editor.on(it, function(ev) {
-                    me.fire(it, ev);
+                $editor.on(it, function(ev) {
                     if (!me.callIntercept(it, ev)) {
-                        ev.preventDefault();
+                        return ev.preventDefault();
                     }
+                    me.fire(it, ev);
                 })
             });
-            //--fix chrome span default line-height bug
+            // fix chrome span default line-height bug
             editor.on("DOMNodeInserted", function(e) {
                 var target = e.target,
                     helper;
@@ -204,7 +223,7 @@
                     target.remove();
                     return;
                 }
-                //--turn div block to p
+                // turn div block to p
                 if (target.tagName === 'DIV') {
                     // execCommand('formatblock', 'p')
                     return;
@@ -327,6 +346,12 @@
             }
         }
     };
+    /**
+     * [actions and intercepts]
+     * @param  {[type]}   name [description]
+     * @param  {Function} fn   [description]
+     * @return {[type]}        [description]
+     */
     Shaft.prototype.registAction = function(name, fn) {
         this.on('action-' + name, proxy(fn, this));
     };
@@ -351,9 +376,22 @@
             return fn.apply(null, [ev]);
         });
     };
-    Shaft.prototype.execCommand = function(name, val) {
+    /**
+     * [_execCommand inner execCommand description]
+     * @param  {[type]} name [description]
+     * @param  {[type]} val  [description]
+     * @return {[type]}      [description]
+     */
+    Shaft.prototype._execCommand = function(name, val) {
         execCommand(name, val);
     };
+    /**
+     * [getNodesFromCurrentToEditor description]
+     * @param  {[type]} el                [description]
+     * @param  {[type]} returnAsNodeName  [description]
+     * @param  {[type]} returnAdClassName [description]
+     * @return {[type]}                   [description]
+     */
     Shaft.prototype.getNodesFromCurrentToEditor = function(el, returnAsNodeName, returnAdClassName) {
         var nodes = [];
         //--editor is a $, el is a HTMLElement
@@ -369,7 +407,12 @@
         }
         return nodes;
     }
-    //--static method
+    /**
+     * static method
+     * @param  {[type]} node)   {                          var els    [description]
+     * @param  {[type]} keyMap: function(name) {               return G.keyMap[name];        }    } [description]
+     * @return {[type]}         [description]
+     */
     mix(Shaft, {
         klass: klass,
         getEventHub: getEventHub,
