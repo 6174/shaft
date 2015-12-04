@@ -432,7 +432,8 @@
         },
         keyMap: function(name) {
             return G.keyMap[name];
-        }
+        },
+        reg: G.reg
     });
     /**********************************************************************
      * Shaft rangy and selection method
