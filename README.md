@@ -1,8 +1,6 @@
 shaft
 =====
 
-A fork from pen.js
-
 shaft  provide the  basic of a  WYSIWYG  editor   
 
 you can make kind of editor by shaft such as:
